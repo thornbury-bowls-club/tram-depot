@@ -635,10 +635,24 @@ begin
   return n;
 end $$;
 
+-- Weekly: use the Brevo API key once, read-only, so it never reaches
+-- Brevo's 90-days-unused expiry during quiet periods
+create or replace function public.brevo_keepalive()
+returns void language plpgsql security definer set search_path = '' as $$
+declare api_key text;
+begin
+  select decrypted_secret into api_key from vault.decrypted_secrets where name = 'brevo_api_key' limit 1;
+  if api_key is null then return; end if;
+  perform net.http_get(
+    url     := 'https://api.brevo.com/v3/smtp/statistics/aggregatedReport?days=1',
+    headers := jsonb_build_object('api-key', api_key, 'accept', 'application/json'));
+end $$;
+
 -- Schedules (times in UTC; Melbourne is UTC+10/+11)
 select cron.schedule('tram-depot-reminders', '0 23 * * *',  'select public.send_expiry_reminders()');  -- ~9–10am
 select cron.schedule('tram-depot-cleanup',   '30 17 * * *', 'select public.daily_cleanup()');          -- ~3:30–4:30am
 select cron.schedule('tram-depot-trash',     '15 * * * *',  'select public.empty_storage_trash()');    -- hourly
+select cron.schedule('tram-depot-brevo-keepalive', '0 22 * * 0', 'select public.brevo_keepalive()');   -- weekly, Monday morning
 
 -- ---------------------------------------------------------------------
 -- 14. Function access

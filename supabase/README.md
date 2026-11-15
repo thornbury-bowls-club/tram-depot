@@ -63,3 +63,4 @@ photo clean-up stay switched off until these are saved.
 | `tram-depot-reminders` | about 9 to 10am daily | Emails sellers 3 days before a Marketplace listing ends |
 | `tram-depot-cleanup` | about 3:30 to 4:30am daily | Deletes listings 30 days after they expire or are marked sold |
 | `tram-depot-trash` | hourly | Removes deleted photos' files from storage |
+| `tram-depot-brevo-keepalive` | Monday mornings | Uses the Brevo API key once so it never expires from 90 days of non-use |
