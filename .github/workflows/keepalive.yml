@@ -1,0 +1,18 @@
+# Supabase pauses free projects after a week without activity.
+# This pings the project twice a week so the Depot never goes to sleep.
+name: Keep Supabase awake
+on:
+  schedule:
+    - cron: '17 21 * * 0,3'   # Mon and Thu mornings, Melbourne time
+  workflow_dispatch: {}
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping the Depot database
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "apikey: sb_publishable_LCfkMLrqQzvT_arXIlZi8w_yTD9lD3C" \
+            "https://voaezublshumlcszutgo.supabase.co/rest/v1/app_settings?select=key&limit=1")
+          echo "Supabase answered with HTTP $code"
+          case "$code" in 2*|401|403) exit 0 ;; *) echo "Unexpected response"; exit 1 ;; esac

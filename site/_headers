@@ -1,0 +1,16 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' blob: data: https://voaezublshumlcszutgo.supabase.co; connect-src 'self' https://voaezublshumlcszutgo.supabase.co wss://voaezublshumlcszutgo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  X-Robots-Tag: noindex, nofollow
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/*.js
+  Cache-Control: no-cache
+
+/*.css
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=604800
