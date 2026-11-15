@@ -568,6 +568,37 @@ drop trigger if exists questions_after_insert on public.questions;
 create trigger questions_after_insert after insert on public.questions
   for each row execute function public.questions_after_insert();
 
+-- New report → email every active moderator
+create or replace function public.reports_after_insert()
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare
+  l record;
+  reporter text;
+  m record;
+begin
+  select li.id, li.title, li.seller_name into l from public.listings li where li.id = new.listing_id;
+  if not found then return new; end if;
+  select full_name into reporter from public.members where id = new.reporter_id;
+
+  for m in select email, full_name from public.members where role = 'moderator' and active loop
+    perform public.send_email(
+      m.email, m.full_name,
+      'Listing reported: "' || l.title || '"',
+      '<p>' || public.html_escape(coalesce(reporter, 'A member')) || ' reported the listing <b>'
+        || public.html_escape(l.title) || '</b> (posted by ' || public.html_escape(l.seller_name) || '):</p>'
+        || '<blockquote style="margin:0;padding:12px 16px;background:#eef0f6;border-radius:8px">'
+        || public.html_escape(new.reason) || '</blockquote>'
+        || public.button_html(public.setting('site_url') || '/#listing-' || l.id, 'Review the listing')
+        || '<p style="font-size:14px;color:#5a6379">You can hide it, delete it or dismiss the report from the Moderation page. '
+        || 'You are getting this because you are a Tram Depot moderator.</p>');
+  end loop;
+  return new;
+end $$;
+
+drop trigger if exists reports_after_insert on public.reports;
+create trigger reports_after_insert after insert on public.reports
+  for each row execute function public.reports_after_insert();
+
 -- Daily: remind sellers 3 days before a Marketplace listing expires
 create or replace function public.send_expiry_reminders()
 returns integer language plpgsql security definer set search_path = '' as $$
