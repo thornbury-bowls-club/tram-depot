@@ -55,7 +55,7 @@ and a "keep me posted" tick for club news. The database adds the visit date (the
 | --- | --- | --- |
 | Guest page | `guest/` → its own Cloudflare Pages project, `thornbury-guests` | `index.html` for guests; `register.html` for moderators to view, print, download or delete sign-ins |
 | Database | Same Supabase project, table `guest_visits` | Set up with `supabase/04_guest_register.sql` |
-| Poster | `poster/guest-signin-poster.pdf` | A4. Rebuild with `python3 poster/build_poster.py <address>` if the address changes |
+| Poster | `poster/guest-signin-poster.pdf` | A4, QR → `https://guests.thornburybowls.com.au`. Rebuild with `python3 poster/build_poster.py <address>` if the address changes |
 
 Who can do what: anyone with the link can **add** a sign-in; nobody can read sign-ins from the
 public page. Tram Depot **moderators** can read and delete them on `register.html` (same emailed
@@ -67,11 +67,14 @@ public page. Tram Depot **moderators** can read and delete them on `register.htm
 2. **Website.** Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** →
    `thornbury-bowls-club` / `tram-depot`. Project name **`thornbury-guests`**, production branch `main`,
    framework preset **None**, build command *(empty)*, build output directory **`guest`** → Save and Deploy.
-3. **Check the address** is `https://thornbury-guests.pages.dev`. If Cloudflare gave a different one,
-   rebuild the poster with that address before printing.
+3. **Check the address** is `https://thornbury-guests.pages.dev` (used in step 5).
 4. **Test** on a phone: scan the poster, sign in as a guest, then open `/register.html`, sign in as a
    moderator and check the entry appears (delete it afterwards).
-5. **Print** `poster/guest-signin-poster.pdf` (A4, or enlarge to A3) and keep the paper register at the
+5. **Club web address.** In Cloudflare → `thornbury-guests` → **Custom domains** → add
+   `guests.thornburybowls.com.au`. Then in cPanel → **Zone Editor** → `thornburybowls.com.au` → add a
+   **CNAME** record: name `guests`, value `thornbury-guests.pages.dev`. Wait for Cloudflare to show **Active**.
+   The poster's QR code points to `https://guests.thornburybowls.com.au`.
+6. **Print** `poster/guest-signin-poster.pdf` (A4, or enlarge to A3) and keep the paper register at the
    bar for guests without a phone.
 
 ### Settings

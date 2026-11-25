@@ -1,7 +1,7 @@
 """Build the guest sign-in QR poster (A4 PDF + PNG preview).
 
 Usage:
-    python3 poster/build_poster.py https://thornbury-guests.pages.dev
+    python3 poster/build_poster.py https://guests.thornburybowls.com.au
 
 Needs Python 3 with Playwright and Google Chrome (or Playwright's Chromium).
 If the guest page ever moves to a new address, run this again and reprint.
@@ -92,7 +92,7 @@ h1{{font-family:Barlow;font-size:50pt;line-height:1;letter-spacing:.03em;text-tr
 
 
 def main() -> None:
-    url = sys.argv[1] if len(sys.argv) > 1 else "https://thornbury-guests.pages.dev"
+    url = sys.argv[1] if len(sys.argv) > 1 else "https://guests.thornburybowls.com.au"
     out = HERE / "guest-signin-poster"
     page_html = HERE / "guest-signin-poster.html"
     page_html.write_text(poster_html(url), encoding="utf-8")
