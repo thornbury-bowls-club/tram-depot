@@ -44,3 +44,44 @@ Every change merged into `main` goes live automatically within a minute or two.
 with sample members alex@example.com, jo@example.com and mod@example.com (code `123456`).
 Serve the repository folder (for example `python3 -m http.server`) and open `/test/index.html`.
 `test/e2e.js` is a Playwright click-through of the main member and moderator journeys.
+
+## Guest register (guest sign-in by QR code)
+
+A separate small site for club guests, required by the Liquor Control Reform Act 1998 (Vic).
+Guests scan the poster's QR code and enter their **name** (required) and optionally an **email**
+and a "keep me posted" tick for club news. The database adds the visit date (the time of day is not stored). Sign-ins older than 12 months are deleted automatically each night, in line with LCV's suggested retention period.
+
+| Part | Where | Notes |
+| --- | --- | --- |
+| Guest page | `guest/` → its own Cloudflare Pages project, `thornbury-guests` | `index.html` for guests; `register.html` for moderators to view, print, download or delete sign-ins |
+| Database | Same Supabase project, table `guest_visits` | Set up with `supabase/04_guest_register.sql` |
+| Poster | `poster/guest-signin-poster.pdf` | A4. Rebuild with `python3 poster/build_poster.py <address>` if the address changes |
+
+Who can do what: anyone with the link can **add** a sign-in; nobody can read sign-ins from the
+public page. Tram Depot **moderators** can read and delete them on `register.html` (same emailed
+6-digit code as the Depot) or in Supabase → Table Editor → `guest_visits`.
+
+### Setting it up
+
+1. **Database.** Supabase → SQL Editor → New query → paste `supabase/04_guest_register.sql` → Run.
+2. **Website.** Cloudflare → **Workers & Pages** → **Create** → **Pages** → **Connect to Git** →
+   `thornbury-bowls-club` / `tram-depot`. Project name **`thornbury-guests`**, production branch `main`,
+   framework preset **None**, build command *(empty)*, build output directory **`guest`** → Save and Deploy.
+3. **Check the address** is `https://thornbury-guests.pages.dev`. If Cloudflare gave a different one,
+   rebuild the poster with that address before printing.
+4. **Test** on a phone: scan the poster, sign in as a guest, then open `/register.html`, sign in as a
+   moderator and check the entry appears (delete it afterwards).
+5. **Print** `poster/guest-signin-poster.pdf` (A4, or enlarge to A3) and keep the paper register at the
+   bar for guests without a phone.
+
+### Settings
+
+- **Club-news sign-ups straight into Brevo.** In Brevo create a contact list (e.g. "Guests – club news")
+  and note its ID. Then run:
+  `update public.app_settings set value = 'LIST_ID' where key = 'brevo_guest_list_id';`
+  Guests who tick the box are added to that list as they sign in. Until then, use
+  **Download news sign-ups** on the register page and import the CSV into Brevo.
+- **Keeping records longer.** Sign-ins are deleted after 12 months. If police or an inspector ask you to keep
+  them longer, stop the deletion straight away with
+  `update public.app_settings set value = '' where key = 'guest_keep_months';`
+  (set it back to `'12'` afterwards).

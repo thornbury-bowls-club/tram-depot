@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guest sign-in · Thornbury Bowls Club</title>
+<meta name="description" content="Sign the Thornbury Bowls Club guest register.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f1f47">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preload" href="assets/fonts/BarlowCondensed-Bold.woff" as="font" type="font/woff" crossorigin>
+<link rel="stylesheet" href="guest.css">
+</head>
+<body>
+<header class="band">
+  <div class="wrap">
+    <img class="crest" src="assets/crest.webp" alt="Thornbury Bowling Club crest" width="64" height="69">
+    <div><span class="sign">Guest sign-in</span><span class="sign-sub">Thornbury Bowls Club · 27 Ballantyne St</span></div>
+  </div>
+</header>
+<div class="stripe"></div>
+
+<main>
+  <div class="wrap">
+
+    <!-- Sign-in form -->
+    <section id="form-view" class="stack">
+      <p class="lead"><b>Welcome to the club!</b> Victorian liquor laws ask every guest to sign our register each visit. It takes ten seconds.</p>
+
+      <form id="guest-form" class="panel stack" novalidate>
+        <div id="form-alert" class="alert" role="alert" hidden></div>
+
+        <div class="field">
+          <label for="name">Your name</label>
+          <input type="text" id="name" name="name" autocomplete="name" autocapitalize="words" maxlength="100" placeholder="First and last name" aria-describedby="name-err" required>
+          <span id="name-err" class="err" hidden></span>
+        </div>
+
+        <div class="field">
+          <label for="email">Email <span class="opt">(optional)</span></label>
+          <input type="email" id="email" name="email" autocomplete="email" inputmode="email" maxlength="254" placeholder="you@example.com" aria-describedby="email-err">
+          <span id="email-err" class="err" hidden></span>
+        </div>
+
+        <label class="check" for="optin">
+          <input type="checkbox" id="optin" name="optin">
+          <span><span class="lbl">Keep me posted</span><span class="hint">Email me club news and events. Unsubscribe any time.</span></span>
+        </label>
+
+        <!-- Left empty by people; filled in by spam bots -->
+        <div class="hp" aria-hidden="true"><label for="website">Website</label><input type="text" id="website" name="website" tabindex="-1" autocomplete="off"></div>
+
+        <button class="btn go" id="submit">Sign in</button>
+
+        <p class="notice" id="privacy">
+          We record your name and the date of your visit in the club's guest register, as required by the
+          Liquor Control Reform Act 1998 (Vic). Your email is optional. We only use it for club news if you tick the box,
+          and every email has an unsubscribe link. Only the club's Board and authorised volunteers can see the register,
+          and we show it to Liquor Control Victoria or Victoria Police if they ask. Questions or corrections:
+          <a id="contact" href="mailto:info@thornburybowls.com.au">info@thornburybowls.com.au</a>.
+        </p>
+      </form>
+    </section>
+
+    <!-- Confirmation -->
+    <section id="done-view" class="stack done" hidden tabindex="-1">
+      <div class="tick" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+      <h1 id="done-title">You're signed in</h1>
+      <div class="ticket">
+        <span class="who" id="done-name"></span>
+        <span class="when" id="done-when"></span>
+        <span class="hint" id="done-news" hidden>We'll email you club news. Thanks for keeping in touch.</span>
+      </div>
+      <p>Enjoy your visit. If bar staff ask, just show them this screen.</p>
+      <button class="btn primary" id="another" type="button">Sign in another guest</button>
+    </section>
+
+    <div class="foot"><img src="assets/script.webp" alt="Thornbury Bowls Club" width="170" height="68"></div>
+  </div>
+</main>
+
+<noscript><div class="wrap"><p class="alert">This page needs JavaScript. Please ask at the bar to sign the paper register.</p></div></noscript>
+<script src="config.js"></script>
+<script src="guest.js"></script>
+</body>
+</html>
