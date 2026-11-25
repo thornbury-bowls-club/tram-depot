@@ -16,7 +16,6 @@
   var today = function () { return ymd(new Date()); };
   var addDays = function (s, n) { var d = new Date(s + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
   var dayLabel = function (s) { return new Date(s + 'T12:00:00').toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }); };
-  var timeLabel = function (iso) { return new Date(iso).toLocaleTimeString('en-AU', { timeZone: TZ, hour: 'numeric', minute: '2-digit' }); };
 
   function render(html) { app.innerHTML = html; }
 
@@ -61,9 +60,9 @@
   /* ---------- Register ---------- */
   function load() {
     S.loading = true; draw();
-    sb.from('guest_visits').select('id, visit_date, visited_at, guest_name, email, opt_in')
+    sb.from('guest_visits').select('id, visit_date, guest_name, email, opt_in')
       .gte('visit_date', S.from).lte('visit_date', S.to)
-      .order('visited_at', { ascending: false }).limit(5000)
+      .order('visit_date', { ascending: false }).order('id', { ascending: false }).limit(5000)
       .then(function (r) {
         S.loading = false;
         if (r.error) { S.msg = 'Couldn’t load the register: ' + r.error.message; S.rows = []; }
@@ -77,10 +76,10 @@
     var body = rows.map(function (r, i) {
       var newDay = i === 0 || rows[i - 1].visit_date !== r.visit_date;
       if (S.confirm === r.id) {
-        return '<tr><td colspan="5"><div class="confirm">Delete ' + esc(r.guest_name) + '’s sign-in? This can’t be undone.' +
+        return '<tr><td colspan="4"><div class="confirm">Delete ' + esc(r.guest_name) + '’s sign-in? This can’t be undone.' +
           '<button class="btn small danger" data-a="del" data-id="' + r.id + '">Delete</button><button class="btn small" data-a="nodel">Keep</button></div></td></tr>';
       }
-      return '<tr><td class="day">' + (newDay ? esc(dayLabel(r.visit_date)) : '') + '</td><td class="t">' + esc(timeLabel(r.visited_at)) + '</td>' +
+      return '<tr><td class="day">' + (newDay ? esc(dayLabel(r.visit_date)) : '') + '</td>' +
         '<td>' + esc(r.guest_name) + '</td><td class="e">' + esc(r.email || '') + (r.opt_in ? ' <span class="yes">News</span>' : '') + '</td>' +
         '<td class="noprint"><button class="btn link" data-a="askdel" data-id="' + r.id + '" aria-label="Delete ' + esc(r.guest_name) + '">Delete</button></td></tr>';
     }).join('');
@@ -103,7 +102,7 @@
       '<p class="summary">' + (S.loading ? 'Loading…' : rows.length + ' sign-in' + (rows.length === 1 ? '' : 's') + (optins ? ' · ' + optins + ' asked for club news' : '')) + '</p>' +
       (S.msg ? '<p class="alert" role="alert">' + esc(S.msg) + '</p>' : '') +
       (rows.length
-        ? '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Time</th><th>Name</th><th>Email</th><th class="noprint"></th></tr></thead><tbody>' + body + '</tbody></table></div>'
+        ? '<div class="tablewrap"><table><thead><tr><th>Date</th><th>Name</th><th>Email</th><th class="noprint"></th></tr></thead><tbody>' + body + '</tbody></table></div>'
         : (S.loading ? '' : '<div class="panel"><p class="lead">No guests signed in for these dates.</p></div>')) +
       '</div>');
   }
@@ -136,7 +135,7 @@
       });
     }
     if (a === 'csv') download('guest-register_' + S.from + '_to_' + S.to + '.csv', csv(S.rows, [
-      ['Date', function (r) { return r.visit_date; }], ['Time', function (r) { return timeLabel(r.visited_at); }],
+      ['Date', function (r) { return r.visit_date; }],
       ['Name', function (r) { return r.guest_name; }], ['Email', function (r) { return r.email; }],
       ['Club news', function (r) { return r.opt_in ? 'Yes' : ''; }]]));
     if (a === 'csvnews') {

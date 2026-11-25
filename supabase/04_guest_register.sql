@@ -7,16 +7,18 @@
 --
 -- What it does
 --   • guest_visits: one row per guest sign-in (name required; email and
---     the club-news opt-in are optional). Date and time are added here,
---     not by the phone, so they can't be faked or wrong.
+--     the club-news opt-in are optional). The visit date is added here,
+--     not by the phone, so it can't be faked or wrong. The time of day
+--     is deliberately not stored.
 --   • Anyone with the link can ADD a row. Nobody can read, change or
 --     delete rows from the public page.
 --   • Tram Depot moderators can read and delete rows (register page,
 --     or Table Editor in this dashboard).
 --   • Optional: guests who tick "keep me posted" are added to a Brevo
 --     contact list automatically (set brevo_guest_list_id below).
---   • Optional: rows older than N months are deleted nightly
---     (set guest_keep_months below).
+--   • Rows older than 12 months are deleted nightly (LCV suggests
+--     keeping registers for up to 12 months). Change guest_keep_months
+--     below; set it to '' to keep everything (e.g. if police ask).
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
@@ -24,7 +26,6 @@
 -- ---------------------------------------------------------------------
 create table if not exists public.guest_visits (
   id          bigint generated always as identity primary key,
-  visited_at  timestamptz not null default now(),
   visit_date  date not null default (now() at time zone 'Australia/Melbourne')::date,
   guest_name  text not null check (length(btrim(guest_name)) between 2 and 100),
   email       text check (email is null or (length(email) <= 254 and email like '%_@_%.__%')),
@@ -32,7 +33,18 @@ create table if not exists public.guest_visits (
   check (not opt_in or email is not null)   -- can only opt in with an email
 );
 
-create index if not exists guest_visits_date_idx on public.guest_visits (visit_date desc, visited_at desc);
+-- Earlier versions stored the time of day; this version keeps the date only
+alter table public.guest_visits drop column if exists visited_at;
+drop index if exists public.guest_visits_date_idx;
+create index if not exists guest_visits_date_idx on public.guest_visits (visit_date desc, id desc);
+
+-- Flood guard counter: sign-ins per minute, with no names attached; kept for an hour
+create table if not exists public.guest_signin_rate (
+  minute timestamptz primary key,
+  n      integer not null default 0
+);
+alter table public.guest_signin_rate enable row level security;   -- no policies: not reachable from the website
+revoke all on public.guest_signin_rate from anon, authenticated;
 
 comment on table public.guest_visits is
   'Guest register (Liquor Control Reform Act 1998). Filled in from the guest sign-in page.';
@@ -42,9 +54,9 @@ comment on table public.guest_visits is
 -- ---------------------------------------------------------------------
 create or replace function public.guest_visits_before_insert()
 returns trigger language plpgsql security definer set search_path = '' as $$
+declare recent integer;
 begin
-  -- The server decides when the visit happened
-  new.visited_at := now();
+  -- The server decides the date of the visit
   new.visit_date := (now() at time zone 'Australia/Melbourne')::date;
 
   new.guest_name := regexp_replace(btrim(new.guest_name), '\s+', ' ', 'g');
@@ -52,9 +64,13 @@ begin
   new.opt_in     := coalesce(new.opt_in, false) and new.email is not null;
 
   -- Simple flood guard: more than 30 sign-ins in a minute is not a real crowd
-  if (select count(*) from public.guest_visits where visited_at > now() - interval '1 minute') >= 30 then
+  insert into public.guest_signin_rate as r (minute, n) values (date_trunc('minute', now()), 1)
+  on conflict (minute) do update set n = r.n + 1
+  returning n into recent;
+  if recent > 30 then
     raise exception 'Too many sign-ins right now. Please try again in a minute.';
   end if;
+  delete from public.guest_signin_rate where minute < now() - interval '1 hour';
 
   return new;
 end $$;
@@ -88,11 +104,12 @@ grant select, delete                     on public.guest_visits to authenticated
 -- 4. Settings (blank = switched off)
 --    brevo_guest_list_id: the number of a Brevo contact list, e.g. '7'
 --      (Brevo → Contacts → Lists → the ID column).
---    guest_keep_months: delete register rows older than this, e.g. '24'.
+--    guest_keep_months: delete register rows older than this many months
+--      (default 12; '' = never delete).
 -- ---------------------------------------------------------------------
 insert into public.app_settings (key, value) values
   ('brevo_guest_list_id', ''),
-  ('guest_keep_months',   '')
+  ('guest_keep_months',   '12')
 on conflict (key) do nothing;
 
 -- ---------------------------------------------------------------------
@@ -130,7 +147,7 @@ create trigger guest_visits_after_insert after insert on public.guest_visits
   for each row execute function public.guest_visits_after_insert();
 
 -- ---------------------------------------------------------------------
--- 6. Optional nightly clean-up of old rows
+-- 6. Nightly clean-up of old rows (12 months by default)
 -- ---------------------------------------------------------------------
 create or replace function public.guest_register_cleanup()
 returns integer language plpgsql security definer set search_path = '' as $$
@@ -151,6 +168,5 @@ select cron.schedule('guest-register-cleanup', '45 17 * * *', 'select public.gue
 -- ---------------------------------------------------------------------
 -- 7. Quick check: the five most recent sign-ins
 -- ---------------------------------------------------------------------
-select visit_date, to_char(visited_at at time zone 'Australia/Melbourne', 'HH12:MI am') as time,
-       guest_name, email, opt_in
-from public.guest_visits order by visited_at desc limit 5;
+select visit_date, guest_name, email, opt_in
+from public.guest_visits order by id desc limit 5;

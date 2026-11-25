@@ -49,7 +49,7 @@ Serve the repository folder (for example `python3 -m http.server`) and open `/te
 
 A separate small site for club guests, required by the Liquor Control Reform Act 1998 (Vic).
 Guests scan the poster's QR code and enter their **name** (required) and optionally an **email**
-and a "keep me posted" tick for club news. The date and time are added by the database.
+and a "keep me posted" tick for club news. The database adds the visit date (the time of day is not stored). Sign-ins older than 12 months are deleted automatically each night, in line with LCV's suggested retention period.
 
 | Part | Where | Notes |
 | --- | --- | --- |
@@ -74,12 +74,14 @@ public page. Tram Depot **moderators** can read and delete them on `register.htm
 5. **Print** `poster/guest-signin-poster.pdf` (A4, or enlarge to A3) and keep the paper register at the
    bar for guests without a phone.
 
-### Optional extras (all off until switched on)
+### Settings
 
 - **Club-news sign-ups straight into Brevo.** In Brevo create a contact list (e.g. "Guests – club news")
   and note its ID. Then run:
   `update public.app_settings set value = 'LIST_ID' where key = 'brevo_guest_list_id';`
   Guests who tick the box are added to that list as they sign in. Until then, use
   **Download news sign-ups** on the register page and import the CSV into Brevo.
-- **Automatic clean-up.** To delete sign-ins older than, say, 24 months:
-  `update public.app_settings set value = '24' where key = 'guest_keep_months';`
+- **Keeping records longer.** Sign-ins are deleted after 12 months. If police or an inspector ask you to keep
+  them longer, stop the deletion straight away with
+  `update public.app_settings set value = '' where key = 'guest_keep_months';`
+  (set it back to `'12'` afterwards).

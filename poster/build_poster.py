@@ -33,24 +33,6 @@ def data_uri(path: pathlib.Path, mime: str) -> str:
     return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode()
 
 
-# A simple, original side-on tram silhouette (club nickname: The Trams)
-TRAM = """<svg class="tram" viewBox="0 0 400 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-  <path d="M196 8 L170 26 M196 8 L222 26" stroke="#0f1f47" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <rect x="150" y="24" width="96" height="6" rx="3" fill="#0f1f47"/>
-  <path d="M40 40 Q40 30 52 30 H348 Q360 30 360 40 V96 H40 Z" fill="#0f1f47"/>
-  <rect x="40" y="78" width="320" height="8" fill="#ef7d1a"/>
-  <g fill="#c4cde3">
-    <rect x="56" y="42" width="34" height="26" rx="3"/><rect x="100" y="42" width="34" height="26" rx="3"/>
-    <rect x="144" y="42" width="34" height="26" rx="3"/><rect x="222" y="42" width="34" height="26" rx="3"/>
-    <rect x="266" y="42" width="34" height="26" rx="3"/><rect x="310" y="42" width="34" height="26" rx="3"/>
-  </g>
-  <rect x="186" y="42" width="28" height="44" rx="2" fill="#1d3370"/>
-  <g fill="#0f1f47"><circle cx="96" cy="100" r="11"/><circle cx="130" cy="100" r="11"/>
-    <circle cx="270" cy="100" r="11"/><circle cx="304" cy="100" r="11"/></g>
-  <rect x="0" y="111" width="400" height="4" rx="2" fill="#0f1f47" opacity=".35"/>
-</svg>"""
-
-
 def poster_html(url: str) -> str:
     short = url.replace("https://", "").replace("http://", "").rstrip("/")
     f = lambda name: (ASSETS / "fonts" / name).as_uri()
@@ -83,10 +65,8 @@ h1{{font-family:Barlow;font-size:50pt;line-height:1;letter-spacing:.03em;text-tr
 .n{{width:11mm;height:11mm;border-radius:50%;background:#0f1f47;color:#fff;font-family:Barlow;font-size:19pt;display:flex;align-items:center;justify-content:center}}
 .law{{margin-top:6mm;font-size:11pt;color:#5a6379;max-width:150mm;line-height:1.4}}
 .law b{{color:#16203a}}
-.bottom{{display:flex;align-items:flex-end;justify-content:space-between;padding:0 14mm 10mm;gap:8mm}}
-.tram{{width:64mm;display:block}}
-.ding{{font-family:Barlow;font-size:20pt;letter-spacing:.14em;color:#ef7d1a;text-transform:uppercase;text-align:center;margin-bottom:2mm}}
-.script{{width:52mm;display:block}}
+.bottom{{display:flex;justify-content:center;padding:0 14mm 12mm}}
+.script{{width:62mm;display:block}}
 </style></head><body>
 <div class="top">
   <img class="crest" src="{data_uri(ASSETS / 'crest.webp', 'image/webp')}" alt="">
@@ -106,8 +86,7 @@ h1{{font-family:Barlow;font-size:50pt;line-height:1;letter-spacing:.03em;text-tr
   <p class="law">Victorian liquor laws ask every guest to sign in <b>each visit</b>.<br>No phone? Just ask at the bar.</p>
 </div>
 <div class="bottom">
-  <div>{TRAM}</div>
-  <div><div class="ding">Ding ding!</div><img class="script" src="{data_uri(ASSETS / 'script.webp', 'image/webp')}" alt="Thornbury Bowls Club"></div>
+  <img class="script" src="{data_uri(ASSETS / 'script.webp', 'image/webp')}" alt="Thornbury Bowls Club">
 </div>
 </body></html>"""
 
