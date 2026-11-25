@@ -1,0 +1,16 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self' https://voaezublshumlcszutgo.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+  X-Robots-Tag: noindex, nofollow
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/*.js
+  Cache-Control: no-cache
+
+/*.css
+  Cache-Control: no-cache
+
+/assets/*
+  Cache-Control: public, max-age=604800
